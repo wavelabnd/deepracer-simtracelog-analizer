@@ -150,6 +150,41 @@ def save_top5_fig(top_df, log_df, metrics):
     fig.savefig('%s/img/%s_top5.png' % (os.getcwd(), model_name))
 
 
+def save_summary(log_df, metrics):
+    WORLD_NAME = metrics['WORLD_NAME']
+    track = np.load("%s/tracks/%s.npy" % (os.getcwd(), WORLD_NAME))
+
+    # model名取得
+    key = str(metrics['METRICS_S3_OBJECT_KEY'])
+    model_name = key[key.find('models')+7:key.find('metrics')-1]
+
+    fig, ax = plt.subplots(figsize=(20, 20), dpi=200)
+
+    ax.set_aspect('equal', 'box')
+
+    colormap = plt.get_cmap('jet')
+
+    log_ar = log_df.sort_values('reward').values
+
+    mapa = ax.scatter(log_ar[:, 2], log_ar[:, 3],
+                      c=log_ar[:, 8], marker='.', cmap=colormap)
+
+    # カラーバー調整
+    divider = mpl_toolkits.axes_grid1.make_axes_locatable(ax)
+    cax = divider.append_axes('right', '5%', pad='3%')
+    cbar = fig.colorbar(mapa, cax=cax)
+
+    cbar.set_label('reward')
+
+    ax.plot(track[:, 0],  track[:, 1], c="grey", alpha=0.5, linestyle=':')
+    ax.plot(track[:, 2],  track[:, 3], c="brown")
+    ax.plot(track[:, 4],  track[:, 5], c="brown")
+
+    ax.set_title('%s Summary' % model_name)
+
+    fig.savefig('%s/img/%s_summary.png' % (os.getcwd(), model_name))
+
+
 def main():
     # get parameters
     filepath = ''
@@ -163,6 +198,7 @@ def main():
     log_df, metrics = file2df(filepath)
     top_df = select_top5(summary_episode(log_df))
     save_top5_fig(top_df, log_df, metrics)
+    save_summary(log_df, metrics)
 
 
 if __name__ == '__main__':
