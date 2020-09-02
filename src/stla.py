@@ -71,7 +71,7 @@ def summary_episode(log_df):
     return sum_df
 
 
-def select_top5(sum_df):
+def select_top(sum_df):
     top_df = sum_df.sort_values(
         ['completed', 'laptime'], ascending=[False, True]).head(5)
     return top_df
@@ -89,7 +89,7 @@ def plot_ax(fig, ax, col, cmap, title, top_df, log_df, track):
         epi_ar = epi_df.values
         ax.plot(epi_ar[:, 2], epi_ar[:, 3], c="grey", alpha=0.3)
 
-    # top5エピソードのログ抽出
+    # topエピソードのログ抽出
     epi_no = list(top_df['episode'].values)
     top_five_ar = log_df[log_df['episode'].isin(epi_no)].values
 
@@ -108,17 +108,10 @@ def plot_ax(fig, ax, col, cmap, title, top_df, log_df, track):
     ax.set_aspect('equal', 'box')
 
 
-def read_track(metrics):
-    # トラック読み込み
-    print("WorldName:%s" % metrics['WORLD_NAME'])
+def save_top_fig(top_df, log_df, metrics):
     WORLD_NAME = metrics['WORLD_NAME']
-    track = np.load("%s/tracks/%s.npy" % (os.getcwd(), WORLD_NAME))
-    return track
-
-
-def save_top5_fig(top_df, log_df, metrics):
-    WORLD_NAME = metrics['WORLD_NAME']
-    track = np.load("%s/tracks/%s.npy" % (os.getcwd(), WORLD_NAME))
+    print('WorldName:', WORLD_NAME)
+    track = np.load("./tracks/%s.npy" % WORLD_NAME)
 
     # model名取得
     key = str(metrics['METRICS_S3_OBJECT_KEY'])
@@ -126,16 +119,16 @@ def save_top5_fig(top_df, log_df, metrics):
 
 # グラフ作成
     fig = plt.figure(figsize=(20, 20), dpi=200, facecolor='w')
-    # Top5 Speed
+    # top Speed
     ax = fig.add_subplot(2, 2, 1)
     plot_ax(fig, ax, 6, 'jet', 'Speed', top_df, log_df, track)
-    # Top5 Steering
+    # top Steering
     ax = fig.add_subplot(2, 2, 2)
     plot_ax(fig, ax, 5, 'jet', 'Steering Angle', top_df, log_df, track)
-    # Top5 Reward
+    # top Reward
     ax = fig.add_subplot(2, 2, 3)
     plot_ax(fig, ax, 8, 'jet', 'Reward', top_df, log_df, track)
-    # Top5 summary
+    # top summary
     ax = fig.add_subplot(2, 2, 4)
     ax.axis('off')
     ax.axis('tight')
@@ -144,21 +137,21 @@ def save_top5_fig(top_df, log_df, metrics):
              loc='center')
 
     fig.tight_layout()
-    fig.suptitle('%s Top 5 Episode' % model_name)
+    fig.suptitle('%s Top Episode' % model_name)
 
     fig.show()
-    fig.savefig('%s/img/%s_top5.png' % (os.getcwd(), model_name))
+    fig.savefig('./img/%s_top.png' % model_name)
 
 
 def save_summary(log_df, metrics):
     WORLD_NAME = metrics['WORLD_NAME']
-    track = np.load("%s/tracks/%s.npy" % (os.getcwd(), WORLD_NAME))
+    track = np.load("./tracks/%s.npy" % WORLD_NAME)
 
     # model名取得
     key = str(metrics['METRICS_S3_OBJECT_KEY'])
     model_name = key[key.find('models')+7:key.find('metrics')-1]
 
-    fig, ax = plt.subplots(figsize=(20, 20), dpi=200)
+    fig, ax = plt.subplots(figsize=(20, 20), dpi=200, facecolor='w')
 
     ax.set_aspect('equal', 'box')
 
@@ -182,7 +175,7 @@ def save_summary(log_df, metrics):
 
     ax.set_title('%s Summary' % model_name)
 
-    fig.savefig('%s/img/%s_summary.png' % (os.getcwd(), model_name))
+    fig.savefig('./img/%s_summary.png' % model_name)
 
 
 def main():
@@ -192,12 +185,11 @@ def main():
         if os.path.isfile(sys.argv[1]):
             filepath = sys.argv[1]
         else:
-            print('robomaker file not exist')
-            return
+            print('file not exist')
 
     log_df, metrics = file2df(filepath)
-    top_df = select_top5(summary_episode(log_df))
-    save_top5_fig(top_df, log_df, metrics)
+    top_df = select_top(summary_episode(log_df))
+    save_top_fig(top_df, log_df, metrics)
     save_summary(log_df, metrics)
 
 
