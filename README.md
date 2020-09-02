@@ -2,7 +2,7 @@
  Analyze deep racer sim-trace-log file  
 
 ```
-$ python3 stla.py aaaaaaaaaaaa-robomaker.log
+src python3 stla.py logs/robomaker.log
 ```
  Sample
 ![](src/img/Murata-TestLogic-FollowCenter-import-3_top5.png)
