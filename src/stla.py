@@ -4,6 +4,7 @@ deep-racer sim-trace-log analizer
 import os
 import sys
 import ast
+import shutil
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -73,7 +74,7 @@ def summary_episode(log_df):
 
 def select_top(sum_df):
     top_df = sum_df.sort_values(
-        ['completed', 'laptime'], ascending=[False, True]).head(5)
+        ['completed', 'laptime'], ascending=[False, True]).head(16)
     return top_df
 
 
@@ -178,19 +179,35 @@ def save_summary(log_df, metrics):
     fig.savefig('./img/%s_summary.png' % model_name)
 
 
-def main():
-    # get parameters
-    filepath = ''
-    if len(sys.argv) > 1:
-        if os.path.isfile(sys.argv[1]):
-            filepath = sys.argv[1]
-        else:
-            print('file not exist')
-
+def proc_file(filepath):
     log_df, metrics = file2df(filepath)
     top_df = select_top(summary_episode(log_df))
     save_top_fig(top_df, log_df, metrics)
     save_summary(log_df, metrics)
+
+
+def main():
+    if len(sys.argv) > 1:
+        if os.path.isfile(sys.argv[1]):
+            proc_file(sys.argv[1])
+
+        else:
+            print('file not exist')
+    else:
+        for file in os.listdir("logs/"):
+            if 'robomaker' in file:
+                print(file)
+        print('change all logs/*robomaker.log file?(Y/N)')
+        ans = input()
+        if ans == 'Y':
+            print('ok')
+            os.makedirs('logs/archives', exist_ok=True)
+            for file in os.listdir("logs/"):
+                if 'robomaker' in file:
+                    proc_file('logs/%s' % file)
+                    shutil.move('logs/%s' % file, 'logs/archives')
+        else:
+            print('bye')
 
 
 if __name__ == '__main__':

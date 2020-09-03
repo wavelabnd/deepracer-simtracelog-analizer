@@ -5,6 +5,8 @@
 
 .vscode/
 .devcontainer/
+src/logs/*.log
+src/img/
 # User-specific files
 *.rsuser
 *.suo
