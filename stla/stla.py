@@ -35,14 +35,22 @@ def file2df(filepath):
     print("ModelName:%s" % model_name)
 
     # 列名指定
-    log_col = ['episode', 'step', 'x-coordinate', 'y-coordinate', 'heading', 'steering_angle', 'speed', 'action_taken', 'reward',
-               'job_completed', 'all_wheels_on_track', 'progress', 'closest_waypoint_index', 'track_length', 'timestamp', 'status']
+    log_col = ['episode', 'step', 'x-coordinate', 'y-coordinate', 'heading',
+               'steering_angle', 'speed', 'action_taken', 'reward',
+               'job_completed', 'all_wheels_on_track', 'progress',
+               'closest_waypoint_index', 'track_length', 'timestamp', 'status']
 
     log_df = pd.DataFrame(data=log_lines, columns=log_col)
 
     # 型指定
-    log_df = log_df.astype({'episode': int, 'step': int, 'x-coordinate': float, 'y-coordinate': float, 'heading': float, 'steering_angle': float, 'speed': float, 'action_taken': int, 'reward': float,
-                            'job_completed': bool, 'all_wheels_on_track': bool, 'progress': float,  'closest_waypoint_index': int, 'track_length': float, 'timestamp': str, 'status': str})
+    log_df = log_df.astype({'episode': int, 'step': int, 'x-coordinate': float,
+                            'y-coordinate': float, 'heading': float,
+                            'steering_angle': float, 'speed': float,
+                            'action_taken': int, 'reward': float,
+                            'job_completed': bool, 'all_wheels_on_track': bool,
+                            'progress': float, 'closest_waypoint_index': int,
+                            'track_length': float, 'timestamp': str,
+                            'status': str})
 
     return log_df, metrics
 
@@ -72,9 +80,9 @@ def summary_episode(log_df):
     return sum_df
 
 
-def select_top(sum_df):
+def select_top(sum_df, num):
     top_df = sum_df.sort_values(
-        ['completed', 'laptime'], ascending=[False, True]).head(16)
+        ['completed', 'laptime'], ascending=[False, True]).head(num)
     return top_df
 
 
@@ -109,7 +117,7 @@ def plot_ax(fig, ax, col, cmap, title, top_df, log_df, track):
     ax.set_aspect('equal', 'box')
 
 
-def save_top_fig(top_df, log_df, metrics):
+def save_top_fig(top_df, log_df, metrics, num):
     WORLD_NAME = metrics['WORLD_NAME']
     print('WorldName:', WORLD_NAME)
     track = np.load("./tracks/%s.npy" % WORLD_NAME)
@@ -138,10 +146,10 @@ def save_top_fig(top_df, log_df, metrics):
              loc='center')
 
     fig.tight_layout()
-    fig.suptitle('%s Top Episode' % model_name)
+    fig.suptitle('%s Top %s Episode' % (model_name, num))
 
     fig.show()
-    fig.savefig('./img/%s_top.png' % model_name)
+    fig.savefig('./img/%s_top%s.png' % (model_name, num))
 
 
 def save_summary(log_df, metrics):
@@ -181,8 +189,10 @@ def save_summary(log_df, metrics):
 
 def proc_file(filepath):
     log_df, metrics = file2df(filepath)
-    top_df = select_top(summary_episode(log_df))
-    save_top_fig(top_df, log_df, metrics)
+    top_df = select_top(summary_episode(log_df), 8)
+    save_top_fig(top_df, log_df, metrics, 8)
+    top_df = select_top(summary_episode(log_df), 1)
+    save_top_fig(top_df, log_df, metrics, 1)
     save_summary(log_df, metrics)
 
 
